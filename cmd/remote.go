@@ -15,6 +15,6 @@ var remoteCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := getConfig()
-		must(sync.SetRemote(cfg.Base, args[0]))
+		must(sync.SetRemote(cfg.Workdir, args[0]))
 	},
 }

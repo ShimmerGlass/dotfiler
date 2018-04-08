@@ -10,6 +10,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+// Write stores the config content on disk at given paths
 func Write(c *Config, cfgPath, localCfgPath string) error {
 	cfg := []rawGroupConfig{}
 
@@ -19,7 +20,7 @@ func Write(c *Config, cfgPath, localCfgPath string) error {
 		}
 
 		for _, l := range g.Links {
-			group.Links = append(group.Links, linkString(c.Base, l))
+			group.Links = append(group.Links, linkString(c.Workdir, l))
 		}
 
 		cfg = append(cfg, group)

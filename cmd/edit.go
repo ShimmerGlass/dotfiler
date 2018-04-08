@@ -16,10 +16,16 @@ var editCmd = &cobra.Command{
 	Short: "Edit dotfiler configuration.",
 	Long: `Edit dotfiler configuration.
 
-[file] can be main (~/.dofiles/dotfiler.yaml) or local (~/.dotfiles/dotfiler_local.yaml). main assumed if not given.
+[file] can be :
+* main (~/.dofiles/dotfiler.yaml) assumed if not given
+* local (~/.dotfiles/dotfiler_local.yaml)
+* a file ~/.dofiles/
 `,
-	Example: "dotfiler git status",
-	Args:    cobra.MaximumNArgs(1),
+	Example: `dotfiler edit
+dotfiler edit local
+dotfiler edit .gitconfig
+`,
+	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		file := configPath()
 		if len(args) > 0 {
@@ -30,7 +36,7 @@ var editCmd = &cobra.Command{
 				file = localConfigPath()
 
 			default:
-				fail("Unknown configuration file %s, expected \"main\" or \"local\"", args[0])
+				file = args[0]
 			}
 		}
 

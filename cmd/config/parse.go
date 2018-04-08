@@ -14,6 +14,7 @@ type rawGroupConfig struct {
 	Links []string `yaml:"links"`
 }
 
+// Parse load given files and parses them to generate a config
 func Parse(cfgPath, localCfgPath string) (*Config, error) {
 	absCfgPath, err := filepath.Abs(cfgPath)
 	if err != nil {
@@ -23,9 +24,7 @@ func Parse(cfgPath, localCfgPath string) (*Config, error) {
 	base := filepath.Dir(absCfgPath)
 
 	cfg := &Config{
-		Project: Project{
-			Base: base,
-		},
+		Workdir: base,
 	}
 
 	contents, err := ioutil.ReadFile(cfgPath)

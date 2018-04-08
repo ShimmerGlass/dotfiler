@@ -10,8 +10,9 @@ func init() {
 }
 
 var updateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Update links based on configuration files",
+	Use:     "update",
+	Short:   "Update links based on configuration files",
+	Aliases: []string{"up"},
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := getConfig()
 

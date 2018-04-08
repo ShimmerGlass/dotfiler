@@ -29,7 +29,7 @@ var linkCmd = &cobra.Command{
 				file, err = filepath.Abs(file)
 				must(err)
 			}
-			link, err := link.MakeLink(cfg.Base, file)
+			link, err := link.MakeLink(cfg.Workdir, file)
 			must(err)
 			cfg.AddLink(groupName, link)
 			writeConfig(cfg)

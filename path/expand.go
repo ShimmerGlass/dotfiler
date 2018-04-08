@@ -15,7 +15,8 @@ func init() {
 	envRxp = regexp.MustCompile("\\$\\w+")
 }
 
-func Expand(base, p string) string {
+// Abs returns the absolte path
+func Abs(base, p string) string {
 	if p == "" {
 		return p
 	}

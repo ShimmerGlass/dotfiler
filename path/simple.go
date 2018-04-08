@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Simple returns a simple version of p
 func Simple(base, p string) string {
 	usr, _ := user.Current()
 	if strings.HasPrefix(p, base) && base != "/" {

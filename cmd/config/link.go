@@ -24,8 +24,8 @@ func parseLink(base, l string) (*link.Link, error) {
 		return nil, fmt.Errorf("invalid link `%s`, expected [flags]:source:dest")
 	}
 
-	link.From = path.Expand(base, link.From)
-	link.To = path.Expand(base, link.To)
+	link.From = path.Abs(base, link.From)
+	link.To = path.Abs(base, link.To)
 
 	return link, nil
 }
