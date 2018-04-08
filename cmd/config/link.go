@@ -33,7 +33,7 @@ func parseLink(base, l string) (*link.Link, error) {
 func linkString(base string, l *link.Link) string {
 	flags := ""
 	if l.Templated {
-		flags += "L:"
+		flags += "T:"
 	}
 	return fmt.Sprintf("%s%s:%s",
 		flags,
