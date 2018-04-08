@@ -22,7 +22,7 @@ var updateCmd = &cobra.Command{
 
 			p := &statusPrinter{}
 			for _, link := range group.Links {
-				status, err := link.Ensure(cfg.Vars)
+				status, err := link.Update(cfg.Vars)
 				if err != nil {
 					color.Red(err.Error())
 					continue

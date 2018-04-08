@@ -16,7 +16,7 @@ type Project struct {
 
 type Group struct {
 	Name  string
-	Links []*df.Link
+	Links []*link.Link
 }
 
 type Local struct {
@@ -24,7 +24,26 @@ type Local struct {
 	Exclude []string    `yaml:"exclude"`
 }
 
-func (c *Config) AddLink(groupName string, link *df.Link) {
+func (c *Config) LinkCount() (i int) {
+	for _, g := range c.Groups {
+		for range g.Links {
+			i++
+		}
+	}
+	return
+}
+
+func (c *Config) Links() []*link.Link {
+	res := []*link.Link{}
+	for _, g := range c.Groups {
+		for _, l := range g.Links {
+			res = append(res, l)
+		}
+	}
+	return res
+}
+
+func (c *Config) AddLink(groupName string, link *link.Link) {
 	group := c.getGroup(groupName)
 	group.Links = append(group.Links, link)
 }

@@ -11,15 +11,15 @@ import (
 )
 
 type linkWithStatus struct {
-	*df.Link
-	Status df.LinkStatus
+	*link.Link
+	Status link.LinkStatus
 }
 
 type statusPrinter struct {
 	links []linkWithStatus
 }
 
-func (p *statusPrinter) Add(link *df.Link, status df.LinkStatus) {
+func (p *statusPrinter) Add(link *link.Link, status link.LinkStatus) {
 	p.links = append(p.links, linkWithStatus{Link: link, Status: status})
 }
 
@@ -84,15 +84,15 @@ func fileColor(path string) color.Attribute {
 	}
 }
 
-func formatStatus(s df.LinkStatus) string {
+func formatStatus(s link.LinkStatus) string {
 	switch s {
-	case df.LinkStatusLinked:
+	case link.LinkStatusLinked:
 		return color.GreenString("Linked")
-	case df.LinkStatusSourceMiss:
+	case link.LinkStatusSourceMiss:
 		return color.RedString("Source miss")
-	case df.LinkStatusTargetExists:
+	case link.LinkStatusTargetExists:
 		return color.RedString("Target exists")
-	case df.LinkStatusUnlinked:
+	case link.LinkStatusUnlinked:
 		return color.YellowString("Unlinked")
 	}
 	return ""

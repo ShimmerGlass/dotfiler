@@ -15,10 +15,11 @@ func init() {
 }
 
 var linkCmd = &cobra.Command{
-	Use:   "link <file or directory>",
-	Short: "Link a file with dotfiler",
-	Long:  "Moves <file> to the dotfiles directory, and creates a symlink to the new location",
-	Args:  cobra.MinimumNArgs(1),
+	Use:     "link <file or directory>",
+	Short:   "Link a file with dotfiler",
+	Long:    "Moves <file> to the dotfiles directory, and creates a symlink to the new location",
+	Example: "dotfiler link ~/.vimrc",
+	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := getConfig()
 
@@ -28,12 +29,12 @@ var linkCmd = &cobra.Command{
 				file, err = filepath.Abs(file)
 				must(err)
 			}
-			link, err := df.MakeLink(cfg.Base, file)
+			link, err := link.MakeLink(cfg.Base, file)
 			must(err)
 			cfg.AddLink(groupName, link)
 			writeConfig(cfg)
 
-			status, err := link.Ensure(nil)
+			status, err := link.Update(cfg.Vars)
 			must(err)
 
 			p := &statusPrinter{}

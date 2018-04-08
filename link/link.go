@@ -1,12 +1,8 @@
-package df
+package link
 
 import (
 	"fmt"
 	"os"
-	"os/user"
-	"path"
-	"path/filepath"
-	"strings"
 
 	"github.com/aestek/dotfiler/tmpl"
 	"github.com/pkg/errors"
@@ -41,41 +37,6 @@ func (l Link) Source() string {
 	return l.From + tmpl.Ext
 }
 
-func MakeLink(base, file string) (*Link, error) {
-	if file == "" {
-		return nil, fmt.Errorf("no file given")
-	}
-
-	if file[len(file)-1] == '/' {
-		file = file[:len(file)-2]
-	}
-
-	usr, err := user.Current()
-	if err != nil {
-		return nil, err
-	}
-
-	from := path.Join(base, strings.TrimPrefix(file, usr.HomeDir))
-	fromDir := filepath.Dir(from)
-	fmt.Println(fromDir)
-	err = os.MkdirAll(fromDir, 0755)
-	if err != nil {
-		return nil, err
-	}
-
-	err = os.Rename(file, from)
-	if err != nil {
-		return nil, err
-	}
-
-	link := &Link{
-		From: from,
-		To:   file,
-	}
-
-	return link, nil
-}
-
 func (l Link) String() string {
 	return fmt.Sprintf("<%s -> %s>", l.From, l.To)
 }
@@ -100,12 +61,12 @@ func (l Link) Status() (LinkStatus, error) {
 		return LinkStatusUnlinked, errors.Wrapf(err, "link %s status", l)
 	}
 	if l.Source() != target {
-		return LinkStatusTargetExists, nil
+		return LinkStatusUnlinked, nil
 	}
 	return LinkStatusLinked, nil
 }
 
-func (l Link) Ensure(vars interface{}) (LinkStatus, error) {
+func (l Link) Update(vars interface{}) (LinkStatus, error) {
 	status, err := l.Status()
 	if err != nil {
 		return status, err
@@ -118,14 +79,14 @@ func (l Link) Ensure(vars interface{}) (LinkStatus, error) {
 	if status == LinkStatusTargetExists {
 		s, err := os.Lstat(l.To)
 		if err != nil {
-			return status, errors.Wrapf(err, "link %s ensure", l)
+			return status, errors.Wrapf(err, "link %s update", l)
 		}
 
 		if s.Mode()&os.ModeSymlink > 0 {
-			fmt.Println("rm", l.To)
+			fmt.Println("Removing symlink", l.To)
 			err := os.Remove(l.To)
 			if err != nil {
-				return status, errors.Wrapf(err, "link %s ensure", l)
+				return status, errors.Wrapf(err, "link %s update", l)
 			}
 		}
 	}
@@ -143,54 +104,11 @@ func (l Link) Ensure(vars interface{}) (LinkStatus, error) {
 		return status, nil
 	}
 
-	fmt.Println("ln", "-s", source, l.To)
+	fmt.Println("Symlinking", source, "to", l.To)
 	err = os.Symlink(source, l.To)
 	if err != nil {
-		return LinkStatusUnlinked, errors.Wrapf(err, "link %s ensure", l)
+		return LinkStatusUnlinked, errors.Wrapf(err, "link %s update", l)
 	}
 
 	return LinkStatusLinked, nil
-}
-
-func Unlink(base, file string) error {
-	s, err := os.Lstat(file)
-	exists := true
-	if os.IsNotExist(err) {
-		exists = false
-	} else if err != nil {
-		return err
-	}
-
-	if s.Mode()&os.ModeSymlink == 0 {
-		return fmt.Errorf("%s is not a symbolic link", file)
-	}
-
-	target, err := os.Readlink(file)
-	if err != nil {
-		return err
-	}
-
-	if !strings.HasPrefix(target, base) {
-		return fmt.Errorf("%s is not in %s", target, base)
-	}
-
-	fmt.Println("rm", file)
-	err = os.Remove(file)
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return nil
-	}
-
-	if s.Mode()&os.ModeDir > 0 {
-		err := tmpl.Clean(file)
-		if err != nil {
-			return err
-		}
-	}
-
-	fmt.Println("mv", target, file)
-	return os.Rename(target, file)
 }

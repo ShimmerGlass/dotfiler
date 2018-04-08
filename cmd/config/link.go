@@ -8,8 +8,8 @@ import (
 	"github.com/aestek/dotfiler/path"
 )
 
-func parseLink(base, l string) (*df.Link, error) {
-	link := &df.Link{}
+func parseLink(base, l string) (*link.Link, error) {
+	link := &link.Link{}
 
 	parts := strings.Split(l, ":")
 	switch len(parts) {
@@ -30,7 +30,7 @@ func parseLink(base, l string) (*df.Link, error) {
 	return link, nil
 }
 
-func linkString(base string, l *df.Link) string {
+func linkString(base string, l *link.Link) string {
 	flags := ""
 	if l.Templated {
 		flags += "L:"

@@ -18,9 +18,7 @@ func workdirExists() bool {
 	if os.IsNotExist(err) {
 		return false
 	}
-	if err != nil {
-		fail(err.Error())
-	}
+	must(err)
 	return true
 }
 
@@ -38,13 +36,15 @@ func localConfigPath() string {
 	return filepath.Join(basePath(), localCfgName)
 }
 
-func home() string {
-	usr, _ := user.Current()
-	return usr.HomeDir
-}
-
 func basePath() string {
-	return filepath.Join(home(), workdirName)
+	if customDirectory != "" {
+		abs, err := filepath.Abs(customDirectory)
+		must(err)
+		return abs
+	}
+	usr, err := user.Current()
+	must(err)
+	return filepath.Join(usr.HomeDir, workdirName)
 }
 
 func getConfig() *config.Config {

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -16,6 +17,12 @@ var statusCmd = &cobra.Command{
 	Short:   "Report links status",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := getConfig()
+
+		if cfg.LinkCount() == 0 {
+			fmt.Println("No links confgured, you can add ones by running the link command :")
+			fmt.Println(linkCmd.Help())
+			os.Exit(0)
+		}
 
 		for _, group := range cfg.Groups {
 			p := &statusPrinter{}
