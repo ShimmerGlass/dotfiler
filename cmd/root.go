@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RootCmd to be ran
 var RootCmd = &cobra.Command{
 	Use:  "dotfiler",
 	Long: "Manage dotfiles",

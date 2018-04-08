@@ -10,17 +10,17 @@ import (
 	"github.com/fatih/color"
 )
 
-type LinkWithStatus struct {
+type linkWithStatus struct {
 	*df.Link
 	Status df.LinkStatus
 }
 
 type statusPrinter struct {
-	links []LinkWithStatus
+	links []linkWithStatus
 }
 
 func (p *statusPrinter) Add(link *df.Link, status df.LinkStatus) {
-	p.links = append(p.links, LinkWithStatus{Link: link, Status: status})
+	p.links = append(p.links, linkWithStatus{Link: link, Status: status})
 }
 
 func (p *statusPrinter) Print(name string) {

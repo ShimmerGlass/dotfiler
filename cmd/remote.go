@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/aestek/dotfiler/sync"
 	"github.com/spf13/cobra"
 )
 
@@ -9,8 +10,11 @@ func init() {
 }
 
 var remoteCmd = &cobra.Command{
-	Use:   "remote",
+	Use:   "remote <git url>",
 	Short: "Init dotfiler",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		cfg := getConfig()
+		must(sync.SetRemote(cfg.Base, args[0]))
 	},
 }
