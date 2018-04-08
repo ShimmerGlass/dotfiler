@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/aestek/dotfiler/cmd/defaults"
@@ -23,9 +25,14 @@ var initCmd = &cobra.Command{
 			fail("workir %s already exists", base)
 		}
 
+		must(os.Mkdir(base, 0755))
+
 		for name, f := range defaults.Files {
-			must(ioutil.WriteFile(filepath.Join(base, name), f, 0644))
-			must(sync.Init(basePath()))
+			path := filepath.Join(base, name)
+			fmt.Println("write", path)
+			must(ioutil.WriteFile(path, f, 0644))
 		}
+
+		must(sync.Init(basePath()))
 	},
 }
