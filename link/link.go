@@ -111,7 +111,17 @@ Install:
 		return status, nil
 	}
 
-	fmt.Println("Symlinking", source, "to", l.To)
+	dir := path.Dir(l.To)
+	_, err = os.Stat(dir)
+	if os.IsNotExist(err) {
+		fmt.Println("Creating directory", dpath.Simple("/", dir))
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			errors.Wrapf(err, "link %s update", l)
+		}
+	}
+
+	fmt.Println("Symlinking", dpath.Simple("/", source), "to", dpath.Simple("/", l.To))
 	err = os.Symlink(source, l.To)
 	if err != nil {
 		return LinkStatusUnlinked, errors.Wrapf(err, "link %s update", l)
