@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/aestek/dotfiler/path"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +41,7 @@ func Build(source string, vars interface{}) (string, error) {
 
 	dest := source + Ext
 
-	fmt.Println("Build", source, "into", dest)
+	fmt.Println("Build", path.Simple("/", source), "into", path.Simple("/", dest))
 
 	tmpl := template.New("t")
 	tmpl, err = tmpl.Parse(string(contents))

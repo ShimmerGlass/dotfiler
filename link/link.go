@@ -3,7 +3,9 @@ package link
 import (
 	"fmt"
 	"os"
+	"path"
 
+	dpath "github.com/aestek/dotfiler/path"
 	"github.com/aestek/dotfiler/tmpl"
 	"github.com/pkg/errors"
 )
@@ -38,7 +40,7 @@ func (l Link) Source() string {
 }
 
 func (l Link) String() string {
-	return fmt.Sprintf("<%s -> %s>", l.From, l.To)
+	return fmt.Sprintf("<%s -> %s>", dpath.Simple("/", l.From), dpath.Simple("/", l.To))
 }
 
 func (l Link) Status() (LinkStatus, error) {
