@@ -78,8 +78,11 @@ func (l Link) Update(vars interface{}) (LinkStatus, error) {
 		return status, nil
 	}
 
-	if status == LinkStatusTargetExists {
+	if status == LinkStatusTargetExists || status == LinkStatusUnlinked {
 		s, err := os.Lstat(l.To)
+		if os.IsNotExist(err) {
+			goto Install
+		}
 		if err != nil {
 			return status, errors.Wrapf(err, "link %s update", l)
 		}
@@ -92,6 +95,8 @@ func (l Link) Update(vars interface{}) (LinkStatus, error) {
 			}
 		}
 	}
+
+Install:
 
 	source := l.From
 	if l.Templated {
