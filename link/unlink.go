@@ -17,7 +17,7 @@ func Unlink(base, file string) error {
 		return err
 	}
 
-	if s.Mode()&os.ModeSymlink == 0 {
+	if exists && s.Mode()&os.ModeSymlink == 0 {
 		return fmt.Errorf("%s is not a symbolic link", file)
 	}
 
