@@ -21,7 +21,7 @@ func parseLink(base, l string) (*link.Link, error) {
 		link.From = parts[0]
 		link.To = parts[1]
 	default:
-		return nil, fmt.Errorf("invalid link `%s`, expected [flags]:source:dest")
+		return nil, fmt.Errorf("invalid link `%s`, expected [flags]:source:dest", l)
 	}
 
 	link.From = path.Abs(base, link.From)

@@ -10,8 +10,8 @@ func init() {
 }
 
 var remoteCmd = &cobra.Command{
-	Use:   "remote <git url>",
-	Short: "Init dotfiler",
+	Use:   "remote GIT_URL",
+	Short: "Sets dotfiles git remote",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := getConfig()
