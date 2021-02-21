@@ -1,10 +1,6 @@
 module github.com/aestek/dotfiler
 
-<<<<<<< HEAD
-go 1.12
-=======
 go 1.13
->>>>>>> Go mod
 
 require (
 	github.com/fatih/color v1.9.0
