@@ -29,13 +29,6 @@ func (l Link) Source() string {
 	if !l.Templated {
 		return l.From
 	}
-	s, err := os.Stat(l.From)
-	if err != nil {
-		return l.From
-	}
-	if s.Mode()&os.ModeDir > 0 {
-		return l.From
-	}
 	return l.From + tmpl.Ext
 }
 
@@ -100,7 +93,7 @@ Install:
 
 	source := l.From
 	if l.Templated {
-		name, err := tmpl.Build(l.From, vars)
+		name, err := tmpl.Build(l.From, l.From+tmpl.Ext, vars)
 		if err != nil {
 			return status, err
 		}
