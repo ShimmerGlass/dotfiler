@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/aestek/dotfiler/path"
@@ -70,6 +71,15 @@ func Build(source, dest string, vars interface{}) (string, error) {
 	fmt.Println("Build", path.Simple("/", source), "into", path.Simple("/", dest))
 
 	tmpl := template.New("t")
+	tmpl.Funcs(template.FuncMap{
+		"read_file": func(path string) string {
+			c, err := os.ReadFile(path)
+			if err != nil {
+				return ""
+			}
+			return strings.TrimSpace(string(c))
+		},
+	})
 	tmpl, err = tmpl.Parse(string(contents))
 	if err != nil {
 		return "", errors.Wrapf(err, "build %s", source)
