@@ -53,7 +53,7 @@ func Build(source, dest string, vars interface{}) (string, error) {
 			if !existing[f.Name()] {
 				p := filepath.Join(dest, f.Name())
 				fmt.Println("Removing", path.Simple("/", p))
-				err := os.Remove(p)
+				err := os.RemoveAll(p)
 				if err != nil {
 					return "", err
 				}
@@ -85,17 +85,30 @@ func Build(source, dest string, vars interface{}) (string, error) {
 		return "", errors.Wrapf(err, "build %s", source)
 	}
 
-	out, err := os.OpenFile(dest, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	out, err := os.CreateTemp(filepath.Dir(dest), "."+filepath.Base(dest)+".tmp*")
 	if err != nil {
 		return "", errors.Wrapf(err, "build %s", source)
 	}
+	defer os.Remove(out.Name())
 
 	err = tmpl.Execute(out, vars)
 	if err != nil {
+		out.Close()
+		return "", errors.Wrapf(err, "build %s", source)
+	}
+
+	err = out.Chmod(s.Mode().Perm())
+	if err != nil {
+		out.Close()
 		return "", errors.Wrapf(err, "build %s", source)
 	}
 
 	err = out.Close()
+	if err != nil {
+		return "", errors.Wrapf(err, "build %s", source)
+	}
+
+	err = os.Rename(out.Name(), dest)
 	if err != nil {
 		return "", errors.Wrapf(err, "build %s", source)
 	}

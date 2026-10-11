@@ -5,8 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aestek/dotfiler/link"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type rawGroupConfig struct {
@@ -25,40 +27,15 @@ func Parse(cfgPath, localCfgPath string) (*Config, error) {
 
 	cfg := &Config{
 		Workdir: base,
+		raw:     map[*link.Link]string{},
 	}
 
-	contents, err := ioutil.ReadFile(cfgPath)
-	if os.IsNotExist(err) {
-		return cfg, nil
-	}
+	err = parseProject(cfg, cfgPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parse config %s", cfgPath)
+		return nil, err
 	}
 
-	var groups []rawGroupConfig
-	err = yaml.Unmarshal(contents, &groups)
-	if err != nil {
-		return nil, errors.Wrapf(err, "parse config %s", cfgPath)
-	}
-
-	for _, g := range groups {
-		gc := &Group{
-			Name: g.Name,
-		}
-
-		for _, rl := range g.Links {
-			link, err := parseLink(base, rl)
-			if err != nil {
-				return nil, err
-			}
-
-			gc.Links = append(gc.Links, link)
-		}
-
-		cfg.Groups = append(cfg.Groups, gc)
-	}
-
-	contents, err = ioutil.ReadFile(localCfgPath)
+	contents, err := ioutil.ReadFile(localCfgPath)
 	if os.IsNotExist(err) {
 		return cfg, nil
 	}
@@ -70,4 +47,49 @@ func Parse(cfgPath, localCfgPath string) (*Config, error) {
 		return nil, errors.Wrap(err, "local config parse")
 	}
 	return cfg, nil
+}
+
+func parseProject(cfg *Config, cfgPath string) error {
+	contents, err := ioutil.ReadFile(cfgPath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrapf(err, "parse config %s", cfgPath)
+	}
+
+	doc := &yamlv3.Node{}
+	err = yamlv3.Unmarshal(contents, doc)
+	if err != nil {
+		return errors.Wrapf(err, "parse config %s", cfgPath)
+	}
+
+	var groups []rawGroupConfig
+	if len(doc.Content) > 0 {
+		err = doc.Content[0].Decode(&groups)
+		if err != nil {
+			return errors.Wrapf(err, "parse config %s", cfgPath)
+		}
+		cfg.doc = doc
+	}
+
+	for _, g := range groups {
+		gc := &Group{
+			Name: g.Name,
+		}
+
+		for _, rl := range g.Links {
+			link, err := parseLink(cfg.Workdir, rl)
+			if err != nil {
+				return err
+			}
+
+			cfg.raw[link] = rl
+			gc.Links = append(gc.Links, link)
+		}
+
+		cfg.Groups = append(cfg.Groups, gc)
+	}
+
+	return nil
 }

@@ -50,7 +50,7 @@ func (p *statusPrinter) Print(name string) {
 		color.New(fileColor(p.links[i].To)).Print(targets[i])
 		fmt.Print(strings.Repeat(" ", tml-len(targets[i])))
 		fmt.Print(" -> ")
-		color.New(fileColor(p.links[i].From)).Print(sources[i])
+		color.New(fileColor(p.links[i].Source())).Print(sources[i])
 		fmt.Print(strings.Repeat(" ", sml-len(sources[i])))
 		fmt.Print(" : ")
 		fmt.Println(formatStatus(p.links[i].Status))
@@ -61,20 +61,16 @@ func (p *statusPrinter) Print(name string) {
 
 func fileColor(path string) color.Attribute {
 	s, err := os.Lstat(path)
-	if os.IsNotExist(err) {
+	if err != nil {
 		return color.FgHiRed
 	}
-	must(err)
 
 	switch {
 	case s.Mode()&os.ModeSymlink > 0:
-		target, err := os.Readlink(path)
-		must(err)
-		_, err = os.Lstat(target)
-		if os.IsNotExist(err) {
+		_, err = os.Stat(path)
+		if err != nil {
 			return color.FgHiRed
 		}
-		must(err)
 		return color.FgHiCyan
 
 	case s.Mode()&os.ModeDir > 0:

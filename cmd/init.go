@@ -22,7 +22,7 @@ var initCmd = &cobra.Command{
 		base := basePath()
 
 		if workdirExists() {
-			fail("workir %s already exists", base)
+			fail("workdir %s already exists", base)
 		}
 
 		must(os.Mkdir(base, 0755))

@@ -20,7 +20,7 @@ var statusCmd = &cobra.Command{
 
 		if cfg.LinkCount() == 0 {
 			fmt.Println("No links confgured, you can add ones by running the link command :")
-			fmt.Println(linkCmd.Help())
+			linkCmd.Help()
 			os.Exit(0)
 		}
 

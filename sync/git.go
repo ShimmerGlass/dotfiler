@@ -23,3 +23,11 @@ func gitv(wd string, args ...string) error {
 	fmt.Println("git", strings.Join(args, " "))
 	return Git(wd, args...)
 }
+
+func gitOutput(wd string, args ...string) (string, error) {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = wd
+	cmd.Stderr = os.Stderr
+	out, err := cmd.Output()
+	return strings.TrimSpace(string(out)), err
+}

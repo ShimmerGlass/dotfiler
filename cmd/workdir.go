@@ -24,7 +24,7 @@ func workdirExists() bool {
 
 func ensureWorkdir() {
 	if !workdirExists() {
-		fail("%s does not exist. See `dotfiler install` to setup dotfiler\n", path.Simple("/", basePath()))
+		fail("%s does not exist. See `dotfiler init` to setup dotfiler\n", path.Simple("/", basePath()))
 	}
 }
 
@@ -55,5 +55,5 @@ func getConfig() *config.Config {
 }
 
 func writeConfig(c *config.Config) {
-	must(config.Write(c, configPath(), localConfigPath()))
+	must(config.Write(c, configPath()))
 }

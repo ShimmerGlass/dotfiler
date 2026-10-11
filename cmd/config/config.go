@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/aestek/dotfiler/link"
+	yaml "gopkg.in/yaml.v3"
 )
 
 // Config sotres both local and project config
@@ -9,6 +10,9 @@ type Config struct {
 	Project
 	Local
 	Workdir string
+
+	doc *yaml.Node
+	raw map[*link.Link]string
 }
 
 // Project contains the links configuration of the project
@@ -54,6 +58,15 @@ func (c *Config) Links() []*link.Link {
 func (c *Config) AddLink(groupName string, link *link.Link) {
 	group := c.getGroup(groupName)
 	group.Links = append(group.Links, link)
+}
+
+func (c *Config) FindLink(target string) *link.Link {
+	for _, l := range c.Links() {
+		if l.To == target {
+			return l
+		}
+	}
+	return nil
 }
 
 // RemoveLink removes a link

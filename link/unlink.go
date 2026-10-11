@@ -3,21 +3,21 @@ package link
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 
-	"github.com/aestek/dotfiler/tmpl"
+	dpath "github.com/aestek/dotfiler/path"
 )
 
 func Unlink(base, file string) error {
 	s, err := os.Lstat(file)
-	exists := true
 	if os.IsNotExist(err) {
-		exists = false
-	} else if err != nil {
+		return fmt.Errorf("%s does not exist", file)
+	}
+	if err != nil {
 		return err
 	}
 
-	if exists && s.Mode()&os.ModeSymlink == 0 {
+	if s.Mode()&os.ModeSymlink == 0 {
 		return fmt.Errorf("%s is not a symbolic link", file)
 	}
 
@@ -25,8 +25,11 @@ func Unlink(base, file string) error {
 	if err != nil {
 		return err
 	}
+	if !filepath.IsAbs(target) {
+		target = filepath.Join(filepath.Dir(file), target)
+	}
 
-	if !strings.HasPrefix(target, base) {
+	if !dpath.HasDirPrefix(target, base) {
 		return fmt.Errorf("%s is not in %s", target, base)
 	}
 
@@ -34,17 +37,6 @@ func Unlink(base, file string) error {
 	err = os.Remove(file)
 	if err != nil {
 		return err
-	}
-
-	if !exists {
-		return nil
-	}
-
-	if s.Mode()&os.ModeDir > 0 {
-		err := tmpl.Clean(file)
-		if err != nil {
-			return err
-		}
 	}
 
 	fmt.Println("Moving", target, "to", file)

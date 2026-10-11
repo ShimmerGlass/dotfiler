@@ -110,7 +110,7 @@ Install:
 		fmt.Println("Creating directory", dpath.Simple("/", dir))
 		err := os.MkdirAll(dir, 0755)
 		if err != nil {
-			errors.Wrapf(err, "link %s update", l)
+			return LinkStatusUnlinked, errors.Wrapf(err, "link %s update", l)
 		}
 	}
 

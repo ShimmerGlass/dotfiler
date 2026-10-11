@@ -25,9 +25,10 @@ var linkCmd = &cobra.Command{
 
 		for _, file := range args {
 			var err error
-			if !filepath.IsAbs(file) {
-				file, err = filepath.Abs(file)
-				must(err)
+			file, err = filepath.Abs(file)
+			must(err)
+			if cfg.FindLink(file) != nil {
+				fail("%s is already linked", file)
 			}
 			link, err := link.MakeLink(cfg.Workdir, file)
 			must(err)
