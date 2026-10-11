@@ -136,6 +136,9 @@ func Install(r Runner, m Manager, names []string) error {
 	}
 	switch m {
 	case Pacman:
+		if _, err := lookPath("trizen"); err == nil {
+			return r.Run("trizen", append([]string{"-S", "--needed"}, names...)...)
+		}
 		return r.Run("sudo", append([]string{"pacman", "-S", "--needed"}, names...)...)
 	case Brew:
 		return r.Run("brew", append([]string{"install"}, names...)...)

@@ -366,6 +366,7 @@ if [ "$1" = "-T" ]; then
 fi
 `)
 	script("sudo", `echo "sudo $*" >> `+log+"\n")
+	script("trizen", `echo "trizen $*" >> `+log+"\n")
 	script("go", `echo "go $*" >> `+log+"\n")
 	return bin, log
 }
@@ -415,8 +416,8 @@ func TestUpInstallsPackagesAndTools(t *testing.T) {
 		t.Fatalf("exit %d\n%s", code, out)
 	}
 	got := readLog(t, log)
-	e.contains(got, "sudo pacman -S --needed b-arch\n", "go install github.com/foo/bar@latest\n", "go install github.com/foo/baz@v1.2.3\n")
-	if strings.Count(got, "sudo pacman") != 1 {
+	e.contains(got, "trizen -S --needed b-arch\n", "go install github.com/foo/bar@latest\n", "go install github.com/foo/baz@v1.2.3\n")
+	if strings.Count(got, "-S --needed") != 1 {
 		t.Errorf("expected one install call:\n%s", got)
 	}
 	if strings.Contains(got, "skipped") || strings.Contains(got, " c") {
@@ -431,7 +432,7 @@ func TestUpInstallsPackagesAndTools(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit %d\n%s", code, out)
 	}
-	if strings.Contains(readLog(t, log), "sudo") {
+	if strings.Contains(readLog(t, log), "-S --needed") {
 		t.Errorf("unexpected install:\n%s", readLog(t, log))
 	}
 	e.contains(out, "All packages are installed")

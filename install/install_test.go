@@ -96,14 +96,29 @@ func TestMissingEmptyNoCalls(t *testing.T) {
 }
 
 func TestInstallCommands(t *testing.T) {
+	oldLook := lookPath
+	defer func() { lookPath = oldLook }()
+
+	has := func(bin string) func(string) (string, error) {
+		return func(name string) (string, error) {
+			if name == bin {
+				return "/usr/bin/" + name, nil
+			}
+			return "", errors.New("not found")
+		}
+	}
+
 	cases := []struct {
 		m    Manager
+		look func(string) (string, error)
 		want call
 	}{
-		{Pacman, call{"sudo", []string{"pacman", "-S", "--needed", "a", "b"}}},
-		{Brew, call{"brew", []string{"install", "a", "b"}}},
+		{Pacman, has("none"), call{"sudo", []string{"pacman", "-S", "--needed", "a", "b"}}},
+		{Pacman, has("trizen"), call{"trizen", []string{"-S", "--needed", "a", "b"}}},
+		{Brew, has("trizen"), call{"brew", []string{"install", "a", "b"}}},
 	}
 	for _, c := range cases {
+		lookPath = c.look
 		f := &fakeRunner{}
 		if err := Install(f, c.m, []string{"a", "b"}); err != nil {
 			t.Fatal(err)

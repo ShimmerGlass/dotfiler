@@ -12,7 +12,7 @@ const ProjectCfgHeader = `# Dotfiler configuration file
 #
 # Groups can also declare system packages and Go tools installed by 'dotfiler up'.
 # packages: a name (same for all managers) or a mapping with per-manager overrides
-#   (pacman on linux, brew on macOS)
+#   (pacman on linux, installed with trizen when available for AUR support, brew on macOS)
 # tools: go: <module>[@version], installed with go install (latest by default)
 #
 # Example :
