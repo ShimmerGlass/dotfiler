@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/aestek/dotfiler/sync"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -15,6 +16,7 @@ var updateCmd = &cobra.Command{
 	Aliases: []string{"up"},
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := getConfig()
+		must(sync.UpdateSubmodules(cfg.Workdir))
 
 		for _, group := range cfg.Groups {
 			if cfg.Excluded(group.Name) {

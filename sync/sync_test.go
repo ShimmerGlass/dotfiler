@@ -17,11 +17,13 @@ func isolate(t *testing.T) {
 	t.Setenv("GIT_AUTHOR_EMAIL", "test@example.com")
 	t.Setenv("GIT_COMMITTER_NAME", "Test")
 	t.Setenv("GIT_COMMITTER_EMAIL", "test@example.com")
-	t.Setenv("GIT_CONFIG_COUNT", "2")
+	t.Setenv("GIT_CONFIG_COUNT", "3")
 	t.Setenv("GIT_CONFIG_KEY_0", "init.defaultBranch")
 	t.Setenv("GIT_CONFIG_VALUE_0", "main")
 	t.Setenv("GIT_CONFIG_KEY_1", "pull.rebase")
 	t.Setenv("GIT_CONFIG_VALUE_1", "false")
+	t.Setenv("GIT_CONFIG_KEY_2", "protocol.file.allow")
+	t.Setenv("GIT_CONFIG_VALUE_2", "always")
 }
 
 func run(t *testing.T, dir string, args ...string) string {
