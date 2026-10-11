@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -339,5 +340,133 @@ func TestNoWorkdir(t *testing.T) {
 		if out := e.fails(args...); !strings.Contains(out, "does not exist") {
 			t.Errorf("%v: output %q", args, out)
 		}
+	}
+}
+
+func fakeBin(t *testing.T, e *env, installed ...string) (string, string) {
+	t.Helper()
+	bin := t.TempDir()
+	log := filepath.Join(bin, "calls.log")
+	instFile := filepath.Join(bin, "installed")
+	e.write(instFile, strings.Join(installed, "\n")+"\n")
+	script := func(name, body string) {
+		e.write(filepath.Join(bin, name), "#!/bin/sh\n"+body)
+		if err := os.Chmod(filepath.Join(bin, name), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	script("pacman", `echo "pacman $*" >> `+log+`
+if [ "$1" = "-T" ]; then
+  shift
+  rc=0
+  for p in "$@"; do
+    if ! grep -qx "$p" `+instFile+`; then echo "$p"; rc=127; fi
+  done
+  exit $rc
+fi
+`)
+	script("sudo", `echo "sudo $*" >> `+log+"\n")
+	script("go", `echo "go $*" >> `+log+"\n")
+	return bin, log
+}
+
+func (e *env) upWithFakes(bin string, args ...string) (string, int) {
+	e.t.Helper()
+	return e.runWith([]string{"PATH=" + bin + ":" + os.Getenv("PATH")}, append([]string{"-D", e.w}, args...)...)
+}
+
+func readLog(t *testing.T, path string) string {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return ""
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+func TestUpInstallsPackagesAndTools(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("linux only")
+	}
+	e := newEnv(t)
+	e.ok("init")
+	e.write(filepath.Join(e.w, "dotfiler.yaml"), `- name: main
+  packages:
+  - a
+  - name: b
+    pacman: b-arch
+  tools:
+  - go: github.com/foo/bar
+  - go: github.com/foo/baz@v1.2.3
+- name: skipped
+  packages:
+  - c
+  tools:
+  - go: github.com/foo/skipped
+`)
+	e.write(filepath.Join(e.w, "dotfiler_local.yaml"), "exclude:\n- skipped\n")
+	bin, log := fakeBin(t, e, "a")
+
+	out, code := e.upWithFakes(bin, "update")
+	if code != 0 {
+		t.Fatalf("exit %d\n%s", code, out)
+	}
+	got := readLog(t, log)
+	e.contains(got, "sudo pacman -S --needed b-arch\n", "go install github.com/foo/bar@latest\n", "go install github.com/foo/baz@v1.2.3\n")
+	if strings.Count(got, "sudo pacman") != 1 {
+		t.Errorf("expected one install call:\n%s", got)
+	}
+	if strings.Contains(got, "skipped") || strings.Contains(got, " c") {
+		t.Errorf("excluded group requested:\n%s", got)
+	}
+
+	if err := os.Remove(log); err != nil {
+		t.Fatal(err)
+	}
+	e.write(filepath.Join(bin, "installed"), "a\nb-arch\n")
+	out, code = e.upWithFakes(bin, "update")
+	if code != 0 {
+		t.Fatalf("exit %d\n%s", code, out)
+	}
+	if strings.Contains(readLog(t, log), "sudo") {
+		t.Errorf("unexpected install:\n%s", readLog(t, log))
+	}
+	e.contains(out, "All packages are installed")
+}
+
+func TestUpNoPackagesNoManagerCalls(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("linux only")
+	}
+	e := newEnv(t)
+	e.ok("init")
+	bin, log := fakeBin(t, e)
+	out, code := e.upWithFakes(bin, "update")
+	if code != 0 {
+		t.Fatalf("exit %d\n%s", code, out)
+	}
+	if got := readLog(t, log); got != "" {
+		t.Errorf("unexpected calls:\n%s", got)
+	}
+}
+
+func TestUpToolFailureExitsNonZero(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("linux only")
+	}
+	e := newEnv(t)
+	e.ok("init")
+	e.write(filepath.Join(e.w, "dotfiler.yaml"), "- name: main\n  tools:\n  - go: github.com/foo/bar\n")
+	bin, _ := fakeBin(t, e)
+	e.write(filepath.Join(bin, "go"), "#!/bin/sh\nexit 1\n")
+	if err := os.Chmod(filepath.Join(bin, "go"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	out, code := e.upWithFakes(bin, "update")
+	if code == 0 {
+		t.Fatalf("expected failure\n%s", out)
 	}
 }

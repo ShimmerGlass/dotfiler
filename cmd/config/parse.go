@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aestek/dotfiler/install"
 	"github.com/aestek/dotfiler/link"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
@@ -12,8 +13,10 @@ import (
 )
 
 type rawGroupConfig struct {
-	Name  string   `yaml:"name"`
-	Links []string `yaml:"links"`
+	Name     string            `yaml:"name"`
+	Packages []install.Package `yaml:"packages"`
+	Tools    []install.Tool    `yaml:"tools"`
+	Links    []string          `yaml:"links"`
 }
 
 // Parse load given files and parses them to generate a config
@@ -75,7 +78,9 @@ func parseProject(cfg *Config, cfgPath string) error {
 
 	for _, g := range groups {
 		gc := &Group{
-			Name: g.Name,
+			Name:     g.Name,
+			Packages: g.Packages,
+			Tools:    g.Tools,
 		}
 
 		for _, rl := range g.Links {

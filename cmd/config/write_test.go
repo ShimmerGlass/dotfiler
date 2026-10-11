@@ -127,3 +127,41 @@ func TestWriteDuplicateRawEntries(t *testing.T) {
 		t.Errorf("expected one entry after removal, got %d:\n%s", n, b)
 	}
 }
+
+func TestWritePreservesPackagesAndTools(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "dotfiler.yaml")
+	missing := filepath.Join(dir, "missing.yaml")
+	writeFile(t, p, "- name: a\n  packages:\n  - zsh\n  - name: fd\n    brew: fd2\n  tools:\n  - go: github.com/foo/bar@v1\n  links:\n  - ./x:/etc/x\n")
+
+	cfg, err := Parse(p, missing)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.AddLink("a", &link.Link{From: filepath.Join(dir, "y"), To: "/etc/y"})
+	cfg.AddLink("b", &link.Link{From: filepath.Join(dir, "z"), To: "/etc/z"})
+	if err := Write(cfg, p); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg2, err := Parse(p, missing)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg2.Groups) != 2 {
+		t.Fatalf("unexpected groups: %+v", cfg2.Groups)
+	}
+	a := cfg2.Groups[0]
+	if len(a.Packages) != 2 || a.Packages[0].Name != "zsh" || a.Packages[1].Brew != "fd2" {
+		t.Errorf("packages lost: %+v", a.Packages)
+	}
+	if len(a.Tools) != 1 || a.Tools[0].Go != "github.com/foo/bar@v1" {
+		t.Errorf("tools lost: %+v", a.Tools)
+	}
+	if len(a.Links) != 2 {
+		t.Errorf("links = %+v", a.Links)
+	}
+	if b := cfg2.Groups[1]; len(b.Packages) != 0 || len(b.Tools) != 0 {
+		t.Errorf("unexpected requirements on new group: %+v", b)
+	}
+}

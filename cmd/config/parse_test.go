@@ -145,3 +145,58 @@ func TestParseDefaultFiles(t *testing.T) {
 		t.Errorf("unexpected exclude: %v", cfg.Exclude)
 	}
 }
+
+func TestParsePackagesAndTools(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "p.yaml")
+	writeFile(t, p, `- name: a
+  packages:
+  - zsh
+  - name: fd
+    brew: fd-brew
+    pacman: fd-pacman
+  tools:
+  - go: github.com/foo/bar
+  - go: github.com/foo/baz/cmd/x@v1.2.3
+  links:
+  - x:/etc/x
+`)
+	cfg, err := Parse(p, filepath.Join(dir, "l.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := cfg.Groups[0]
+	if len(g.Packages) != 2 || g.Packages[0].Name != "zsh" || g.Packages[0].Pacman != "" {
+		t.Errorf("unexpected packages: %+v", g.Packages)
+	}
+	if fd := g.Packages[1]; fd.Name != "fd" || fd.Brew != "fd-brew" || fd.Pacman != "fd-pacman" {
+		t.Errorf("unexpected package: %+v", fd)
+	}
+	if len(g.Tools) != 2 || g.Tools[0].Go != "github.com/foo/bar" || g.Tools[1].Go != "github.com/foo/baz/cmd/x@v1.2.3" {
+		t.Errorf("unexpected tools: %+v", g.Tools)
+	}
+	if len(g.Links) != 1 {
+		t.Errorf("unexpected links: %+v", g.Links)
+	}
+}
+
+func TestParseInvalidPackagesAndTools(t *testing.T) {
+	cases := map[string]string{
+		"unknown tool kind":  "- name: a\n  tools:\n  - cargo: foo\n",
+		"empty go tool":      "- name: a\n  tools:\n  - go: \"\"\n",
+		"scalar tool":        "- name: a\n  tools:\n  - foo\n",
+		"package no name":    "- name: a\n  packages:\n  - brew: foo\n",
+		"package empty name": "- name: a\n  packages:\n  - \"\"\n",
+		"package sequence":   "- name: a\n  packages:\n  - [a, b]\n",
+	}
+	for name, content := range cases {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			p := filepath.Join(dir, "p.yaml")
+			writeFile(t, p, content)
+			if _, err := Parse(p, filepath.Join(dir, "l.yaml")); err == nil {
+				t.Error("expected error")
+			}
+		})
+	}
+}

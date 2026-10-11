@@ -10,9 +10,21 @@ const ProjectCfgHeader = `# Dotfiler configuration file
 # <source> and <destination> can contain ~ or env vars ($USER)
 # <source> is relative to ~/.dotfiles
 #
+# Groups can also declare system packages and Go tools installed by 'dotfiler up'.
+# packages: a name (same for all managers) or a mapping with per-manager overrides
+#   (pacman on linux, brew on macOS)
+# tools: go: <module>[@version], installed with go install (latest by default)
+#
 # Example :
 #
 # - name: vim
+#   packages:
+#   - vim
+#   - name: fd
+#     brew: fd
+#     pacman: fd
+#   tools:
+#   - go: github.com/aestek/ps1
 #   links:
 #   - .vimrc:~/.vimrc
 

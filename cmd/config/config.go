@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/aestek/dotfiler/install"
 	"github.com/aestek/dotfiler/link"
 	yaml "gopkg.in/yaml.v3"
 )
@@ -22,8 +23,10 @@ type Project struct {
 
 // Group bundles links to be toggled on and off
 type Group struct {
-	Name  string
-	Links []*link.Link
+	Name     string
+	Packages []install.Package
+	Tools    []install.Tool
+	Links    []*link.Link
 }
 
 // Local contains the settings relative to this system
